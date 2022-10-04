@@ -1,4 +1,4 @@
-const { db, Users, Tweets, Follow } = require('./db');
+const { db, Users, Tweets, Follow, TweetsTaggedUsers } = require('./db');
 const users = [
 	{
 		username: 'Twitter',
@@ -45,9 +45,10 @@ const seedDb = async () => {
 	follows = await twitter.getFollows();
 	whoTwitterFollows = follows.map((user) => user.username);
 	fr = await twitter.getFollowers();
+	console.log(fr);
 	twittersFollowers = fr.map((user) => user.username);
-	console.log(`Twitter follows: [${whoTwitterFollows}]`);
-	console.log(`Twitter's followers: [${twittersFollowers}]`);
+	//console.log(`Twitter follows: [${whoTwitterFollows}]`);
+	//console.log(`Twitter's followers: [${twittersFollowers}]`);
 
 	// Trying to query for a certain user's followers.
 	// Does not work.
@@ -73,7 +74,7 @@ const seedDb = async () => {
 	//console.log({ taylorsFollowers });
 
 	const taylorsFollowersNames = taylorsFollowers.map((user) => user.username);
-	console.log(`Taylor Swift is followed by: ${taylorsFollowersNames}`);
+	// console.log(`Taylor Swift is followed by: ${taylorsFollowersNames}`);
 
 	await obama.addFollows(cnn); // Obama followed CNN
 	await cnn.addFollows(obama); // Cnn followed Obama back
@@ -81,21 +82,22 @@ const seedDb = async () => {
 	// Initial query for Obama's Followers
 	let whoFollowsObama = await obama.getFollowers();
 	let whoFollowsObamaNames = whoFollowsObama.map((user) => user.username);
-	console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
+	// console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
 
 	// Obama gets a new follower
 	await taylorswift.addFollows(obama);
-	console.log('Taylor Swift followed Obama!');
+	//console.log('Taylor Swift followed Obama!');
 
 	//  Requery for Obama's Followers - should now have taylor!
 	whoFollowsObama = await obama.getFollowers();
 	whoFollowsObamaNames = whoFollowsObama.map((user) => user.username);
-	console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
+	//console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
 
-	const obamaTweets = await makeObamaTweets(obama);
+	const obamaTweets = await makeObamaTweets(obama, cnn);
+	console.log(obamaTweets);
 };
 
-const makeObamaTweets = async (obama) => {
+const makeObamaTweets = async (obama, cnn) => {
 	// Magic Methods for Tweets Model
 	console.log(Object.keys(Tweets.prototype));
 
@@ -119,6 +121,14 @@ const makeObamaTweets = async (obama) => {
 			'¿Que bolá Cuba? Just touched down here, looking forward to meeting and hearing directly from the Cuban people.',
 	});
 	await tweet3.setUser(obama);
+
+	const tweet4 = await Tweets.create({
+		content: 'Just had an interview with @CNNBRK.',
+		taggedUserId: cnn.id, // This doesn't do anything.
+	});
+
+	//await tweet4.addTaggedUser(cnn); This line makes it crash
+	await obama.addTweet(tweet4);
 
 	return await obama.getTweets();
 };

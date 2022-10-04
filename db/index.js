@@ -4,6 +4,7 @@ const db = require('./db');
 const Users = require('./users');
 const Tweets = require('./tweets');
 const Follow = require('./follow');
+const TweetsTaggedUsers = require('./tweetsTaggedUsers');
 
 // Model Associations go here
 
@@ -25,9 +26,24 @@ Users.belongsToMany(Users, {
 	foreignKey: 'FollowsId',
 });
 
+// One tweet can have 'tagged' many users.
+// a User can be tagged in many different tweets.
+Tweets.belongsToMany(Users, {
+	through: TweetsTaggedUsers,
+	as: 'taggedUser',
+	foreignKey: 'taggedUserId',
+});
+
+Users.belongsToMany(Tweets, {
+	through: TweetsTaggedUsers,
+	as: 'taggedIn',
+	foreignKey: 'taggedUserId',
+});
+
 module.exports = {
 	db,
 	Users,
 	Tweets,
 	Follow,
+	TweetsTaggedUsers,
 };
