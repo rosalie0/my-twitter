@@ -7,14 +7,9 @@ const Follow = require('./follow');
 
 // Model Associations go here
 
-// One-to-many:
+// One-to-many: One user has many tweets. Each tweet has only one user.
 Users.hasMany(Tweets);
 Tweets.belongsTo(Users);
-
-// // A member has one other member as a sponsor.
-// Member.belongsTo(Member, { as: 'sponsor', foreignKey: 'sponsorId' });
-// // A member can have many 'sponsees', aka other members sponsored by them.
-// Member.hasMany(Member, { as: 'sponsees' });
 
 // A user follows many users
 Users.belongsToMany(Users, {

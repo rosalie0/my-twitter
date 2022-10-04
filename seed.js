@@ -92,24 +92,35 @@ const seedDb = async () => {
 	whoFollowsObamaNames = whoFollowsObama.map((user) => user.username);
 	console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
 
+	const obamaTweets = await makeObamaTweets(obama);
+};
+
+const makeObamaTweets = async (obama) => {
+	// Magic Methods for Tweets Model
+	console.log(Object.keys(Tweets.prototype));
+
+	// Version 1: Hard-coding the userId
 	const tweet1 = await Tweets.create({
-		content: 'Hello World',
+		content:
+			"Being a father is sometimes my hardest but always my most rewarding job. Happy Father's Day to all the dads out there. -BO",
 		userId: obama.id,
 	});
 
+	// Version 2: using 'addTweet' Magic method
 	const tweet2 = await Tweets.create({
-		content: 'Goodbye World',
+		content:
+			"Alright, let's do this. Ready to answer your health care questions. Keep 'em coming with #AskPOTUS.",
 	});
 	await obama.addTweet(tweet2);
 
+	// Version 3: using 'setUser' Magic method
 	const tweet3 = await Tweets.create({
-		content: 'Hello Again World',
+		content:
+			'¿Que bolá Cuba? Just touched down here, looking forward to meeting and hearing directly from the Cuban people.',
 	});
-	tweet3.setUser(obama);
-	console.log(await obama.getTweets());
+	await tweet3.setUser(obama);
 
-	// Magic Methods for Tweets Model
-	console.log(Object.keys(Tweets.prototype));
+	return await obama.getTweets();
 };
 
 seedDb();
