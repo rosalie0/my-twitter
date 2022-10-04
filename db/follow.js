@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const db = require('./db');
 
-const FollowerFollowing = db.define('followerfollowing', {});
+const Follow = db.define('follow', {});
 
-module.exports = FollowerFollowing;
+module.exports = Follow;

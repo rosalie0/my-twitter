@@ -1,4 +1,4 @@
-const { db, Users, Tweets, FollowerFollowing } = require('./db');
+const { db, Users, Tweets, Follow } = require('./db');
 const users = [
 	{
 		username: 'Twitter',
@@ -29,48 +29,87 @@ const seedDb = async () => {
 	await db.sync({ force: true, logging: false });
 
 	const Promises = users.map((user) => Users.create(user));
-	const [twitter, taylorswift, justinbieber, cnn, obama] = await Promise.all(
+	const [twitter, obama, taylorswift, justinbieber, cnn] = await Promise.all(
 		Promises
 	);
 
-	// Every twitter user follows @twitter
-	await twitter.setFollowers([taylorswift, justinbieber, cnn, obama]);
+	// Magic Methods:
+	//console.log(Object.keys(Users.prototype));
 
-	// @twitter follows every user
-	await twitter.setFollows([taylorswift, justinbieber, cnn, obama]);
+	// @twitter follows every user on the site.
+	await twitter.addFollows([taylorswift, justinbieber, cnn, obama]);
+	// Every twitter user follows @twitter.
+	await twitter.addFollower([taylorswift, justinbieber, cnn, obama]);
 
-	// Who are twitter's followers?
-	let twittersFollowers = await twitter.getFollowers();
-	let twittersFollowersNames = twittersFollowers
-		.map((user) => user.username)
-		.join(', ');
-	console.log(`\nTwitter's followers are: [${twittersFollowersNames}]`);
+	// Queries for  twitter in both directions
+	follows = await twitter.getFollows();
+	whoTwitterFollows = follows.map((user) => user.username);
+	fr = await twitter.getFollowers();
+	twittersFollowers = fr.map((user) => user.username);
+	console.log(`Twitter follows: [${whoTwitterFollows}]`);
+	console.log(`Twitter's followers: [${twittersFollowers}]`);
 
-	let whoObamafollows = await obama.getFollows();
-	let whoObamafollowsNames = whoObamafollows
-		.map((user) => user.username)
-		.join(', ');
-	console.log(`Obama follows: [${whoObamafollowsNames}]`);
+	// Trying to query for a certain user's followers.
+	// Does not work.
+	/*
+	const test = await Users.findAll({
+		includes: [
+			{
+				model: Users,
+				as: 'Follows',
+				through: {
+					where: {
+						username: taylorswift.username,
+					},
+				},
+			},
+		],
+	});
+	console.log({ test });
+	*/
 
-	// CNN and Obama follow each other.
-	await obama.setFollowers(cnn);
-	await cnn.setFollowers(obama);
-	console.log(`CNN & Obama became mutuals.`);
+	// Much easier to get a user's followers using magic methods!
+	const taylorsFollowers = await taylorswift.getFollowers();
+	//console.log({ taylorsFollowers });
 
-	// Who are twitter's followers?
-	twittersFollowers = await twitter.getFollowers();
-	twittersFollowersNames = twittersFollowers
-		.map((user) => user.username)
-		.join(', ');
-	console.log(`Now, twitter's followers are: [${twittersFollowersNames}]`);
+	const taylorsFollowersNames = taylorsFollowers.map((user) => user.username);
+	console.log(`Taylor Swift is followed by: ${taylorsFollowersNames}`);
 
-	whoObamafollows = await obama.getFollows();
-	whoObamafollowsNames = whoObamafollows
-		.map((user) => user.username)
-		.join(', ');
-	console.log(`Now, Obama follows: [${whoObamafollowsNames}]`);
+	await obama.addFollows(cnn); // Obama followed CNN
+	await cnn.addFollows(obama); // Cnn followed Obama back
 
-	return;
+	// Initial query for Obama's Followers
+	let whoFollowsObama = await obama.getFollowers();
+	let whoFollowsObamaNames = whoFollowsObama.map((user) => user.username);
+	console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
+
+	// Obama gets a new follower
+	await taylorswift.addFollows(obama);
+	console.log('Taylor Swift followed Obama!');
+
+	//  Requery for Obama's Followers - should now have taylor!
+	whoFollowsObama = await obama.getFollowers();
+	whoFollowsObamaNames = whoFollowsObama.map((user) => user.username);
+	console.log(`Obama is followed by: ${whoFollowsObamaNames}`);
+
+	const tweet1 = await Tweets.create({
+		content: 'Hello World',
+		userId: obama.id,
+	});
+
+	const tweet2 = await Tweets.create({
+		content: 'Goodbye World',
+	});
+	await obama.addTweet(tweet2);
+
+	const tweet3 = await Tweets.create({
+		content: 'Hello Again World',
+	});
+	tweet3.setUser(obama);
+	console.log(await obama.getTweets());
+
+	// Magic Methods for Tweets Model
+	console.log(Object.keys(Tweets.prototype));
 };
 
 seedDb();

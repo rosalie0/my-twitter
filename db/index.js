@@ -3,7 +3,7 @@ const db = require('./db');
 // Model Imports go here
 const Users = require('./users');
 const Tweets = require('./tweets');
-const FollowerFollowing = require('./follow');
+const Follow = require('./follow');
 
 // Model Associations go here
 
@@ -16,23 +16,23 @@ Tweets.belongsTo(Users);
 // // A member can have many 'sponsees', aka other members sponsored by them.
 // Member.hasMany(Member, { as: 'sponsees' });
 
-// A user has many followers
+// A user follows many users
 Users.belongsToMany(Users, {
-	through: FollowerFollowing,
-	as: 'followers',
-	foreignKey: 'userFollowedId',
+	through: Follow,
+	as: 'Followers',
+	//foreignKey: 'FollowersId', // This line is Optional
 });
 
-// // A user follows many users.
+// A user has many followers
 Users.belongsToMany(Users, {
-	through: FollowerFollowing,
-	as: 'follows',
-	foreignKey: 'followedBy',
+	through: Follow,
+	as: 'Follows',
+	foreignKey: 'FollowsId',
 });
 
 module.exports = {
 	db,
 	Users,
 	Tweets,
-	FollowerFollowing,
+	Follow,
 };
